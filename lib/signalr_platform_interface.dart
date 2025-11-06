@@ -1,4 +1,4 @@
-import 'package:signalr_flutter_unx/signalr_api.dart';
+import 'package:signalr_flutter/signalr_api.dart';
 
 abstract class SignalrPlatformInterface {
   SignalrPlatformInterface(this.baseUrl, this.hubName,

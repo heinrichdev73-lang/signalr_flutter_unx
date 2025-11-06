@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:signalr_flutter_unx/signalr_api.dart';
-import 'package:signalr_flutter_unx/signalr_platform_interface.dart';
+import 'package:signalr_flutter/signalr_api.dart';
+import 'package:signalr_flutter/signalr_platform_interface.dart';
 
 class SignalR extends SignalrPlatformInterface implements SignalRPlatformApi {
   // Private variables

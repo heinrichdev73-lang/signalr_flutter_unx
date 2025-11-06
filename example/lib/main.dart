@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:signalr_flutter_unx/signalr_api.dart';
-import 'package:signalr_flutter_unx/signalr_flutter.dart';
+import 'package:signalr_flutter/signalr_api.dart';
+import 'package:signalr_flutter/signalr_flutter.dart';
 
 void main() {
   runApp(const MyApp());
