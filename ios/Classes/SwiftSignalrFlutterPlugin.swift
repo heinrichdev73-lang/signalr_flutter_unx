@@ -20,6 +20,31 @@ public class SwiftSignalrFlutterPlugin: NSObject, FlutterPlugin, FLTSignalRHostA
     SwiftSignalrFlutterPlugin.signalrApi = nil
   }
 
+  private func stringifyArgs(_ args: [Any?]?) -> String {
+    guard let args = args, !args.isEmpty else { return "" }
+
+    // Back-compat: if there is exactly one String, pass it through
+    if args.count == 1, let s = args[0] as? String { return s }
+
+    // Build a JSON-able object: single value or array
+    let payload: Any
+    if args.count == 1 {
+      payload = args[0] ?? NSNull()
+    } else {
+      payload = args.map { $0 ?? NSNull() }
+    }
+
+    // If it’s JSON-serializable, encode; else fall back to description
+    if JSONSerialization.isValidJSONObject(payload) {
+      if let data = try? JSONSerialization.data(withJSONObject: payload, options: []),
+        let s = String(data: data, encoding: .utf8) {
+        return s
+      }
+    }
+    return String(describing: payload)
+  }
+
+
   public func connect(_ connectionOptions: FLTConnectionOptions, completion: @escaping (String?, FlutterError?) -> Void) {
     connection = SignalR(connectionOptions.baseUrl ?? "")
 
@@ -50,10 +75,15 @@ public class SwiftSignalrFlutterPlugin: NSObject, FlutterPlugin, FLTSignalRHostA
     if let hubMethods = connectionOptions.hubMethods, !hubMethods.isEmpty {
       hubMethods.forEach { (methodName) in
         hub.on(methodName) { (args) in
-          SwiftSignalrFlutterPlugin.signalrApi?.onNewMessageHubName(methodName, message: args?[0] as? String ?? "", completion: { error in })
+          let json = self.stringifyArgs(args)
+          SwiftSignalrFlutterPlugin.signalrApi?.onNewMessageHubName(
+            methodName,
+            message: json,
+            completion: { _ in })
         }
       }
     }
+
 
     connection.starting = {
       let statusChangeResult : FLTStatusChangeResult = FLTStatusChangeResult.init()
