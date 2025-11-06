@@ -1,5 +1,8 @@
 package dev.asdevs.signalr_flutter
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+
 import android.os.Handler
 import android.os.Looper
 
@@ -21,6 +24,8 @@ class SignalrFlutterPlugin : FlutterPlugin, SignalrApi.SignalRHostApi {
 
     private lateinit var signalrApi: SignalrApi.SignalRPlatformApi
 
+    private val gson = Gson()
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         SignalrApi.SignalRHostApi.setup(flutterPluginBinding.binaryMessenger, this)
         signalrApi = SignalrApi.SignalRPlatformApi(flutterPluginBinding.binaryMessenger)
@@ -28,6 +33,11 @@ class SignalrFlutterPlugin : FlutterPlugin, SignalrApi.SignalRHostApi {
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         SignalrApi.SignalRHostApi.setup(binding.binaryMessenger, null)
+    }
+
+    private fun stringifyArg(arg: Any?): String {
+        if (arg == null) return ""
+        return if (arg is String) arg else gson.toJson(arg)
     }
 
     override fun connect(
@@ -57,11 +67,16 @@ class SignalrFlutterPlugin : FlutterPlugin, SignalrApi.SignalRHostApi {
             hub = connection.createHubProxy(connectionOptions.hubName)
 
             connectionOptions.hubMethods?.forEach { methodName ->
-                hub.on(methodName, { res ->
-                    Handler(Looper.getMainLooper()).post {
-                        signalrApi.onNewMessage(methodName, res) { }
+                hub.on(methodName, { anyArg ->
+                    val msg = when (anyArg) {
+                        is String -> anyArg
+                        is JsonElement -> gson.toJson(anyArg)
+                        else -> stringifyArg(anyArg)
                     }
-                }, String::class.java)
+                    Handler(Looper.getMainLooper()).post {
+                        signalrApi.onNewMessage(methodName, msg) { }
+                    }
+                }, JsonElement::class.java)
             }
 
             connection.connected {
