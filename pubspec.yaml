@@ -1,4 +1,4 @@
-name: signalr_flutter_unexus
+name: signalr_flutter_unx
 description: A flutter plugin for .net SignalR client. This client is for ASP.Net SignalR, not for .Net Core SignalR.
 version: 0.2.1+u1
 repository: https://github.com/AS-Devs/signalr_flutter
